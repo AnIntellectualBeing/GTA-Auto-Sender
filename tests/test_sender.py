@@ -62,6 +62,9 @@ class SenderTest(unittest.TestCase):
                 yt += "youtube" in pl; ig += "instagram" in pl
         self.assertEqual(yt, 2); self.assertEqual(ig, 3)
 
+    def test_example_config_is_valid_json(self):
+        json.load(open(os.path.join(KIT, "config", "channels.example.json"), encoding="utf-8"))
+
     def test_autopost_dry_runs_clean(self):
         self.run_py("clip_feeder.py")
         r = self.run_py("autopost.py", "--dry"); self.assertEqual(r.returncode, 0, r.stdout + r.stderr)

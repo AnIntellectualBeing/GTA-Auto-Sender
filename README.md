@@ -23,7 +23,7 @@ live streams ──> clip.py (one per stream) ──> clipper output\ ──> cl
 1. Install Python 3.10+ and the [GTA Auto Clipper](https://github.com/AnIntellectualBeing/GTA-Auto-Clipper).
 2. In [Zernio](https://zernio.com): create a profile, connect each YouTube channel and Instagram account
    (Instagram must be Creator or Business), then Settings > API Keys > create a key.
-3. `copy .env.example .env` and put the key in it. `copy config\channels.example.json config\channels.json`
+3. `copy .env.example .env` and put the key after `ZERNIO_KEY_MAIN=`. The name on the left must match `key_env` in `config\channels.json` (it is `ZERNIO_KEY_MAIN` in the example); use a new name per Zernio account if you have several keys. `copy config\channels.example.json config\channels.json`
    and fill in: your Zernio account IDs per channel, `clipper_output` (the clipper's `output` folder), the time
    zone offset, and the posts per hour. One Zernio key can serve many channels. Both files are git-ignored.
 4. Test with nothing posted: `python -m unittest discover -s tests -p "test_*.py"` then `python clip_feeder.py --dry`

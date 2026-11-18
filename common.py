@@ -11,7 +11,11 @@ def load_config():
     path = os.path.join(ROOT, "config", "channels.json")
     if not os.path.exists(path):
         sys.exit("config/channels.json missing: copy config/channels.example.json to config/channels.json and fill it in.")
-    return json.load(open(path, encoding="utf-8-sig"))
+    try:
+        return json.load(open(path, encoding="utf-8-sig"))
+    except json.JSONDecodeError as e:
+        sys.exit(f"config/channels.json is not valid JSON ({e}). In JSON write Windows paths with forward slashes "
+                 "(C:/videos/output) or doubled backslashes (C:\\\\videos\\\\output).")
 
 
 def tzinfo(cfg):

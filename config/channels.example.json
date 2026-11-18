@@ -17,6 +17,8 @@
       "instagram_account_id": "PASTE_ZERNIO_INSTAGRAM_ACCOUNT_ID",
       "youtube_per_hour": 3,
       "instagram_per_hour": 1,
+      "youtube_per_day": 10,
+      "instagram_per_day": 45,
       "youtube_category": "20"
     },
     "channel2": {

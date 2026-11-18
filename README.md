@@ -35,6 +35,7 @@ live streams ──> clip.py (one per stream) ──> clipper output\ ──> cl
 
 ## Rules that save you
 
+* **YouTube's daily limit.** A normal YouTube channel refuses uploads past about 10 per 24 hours ("exceeded the number of videos they may upload"); those posts fail and the clip is lost. `youtube_per_day` (default 10) caps YouTube per channel and the feeder sends the surplus to Instagram only (`instagram_per_day`, default 45). Phone-verify each YouTube channel to raise the limit. More channels = more posts a day.
 * **Posting pace.** Start with 3-6 YouTube posts an hour per channel and raise it slowly. Hundreds of near-identical
   uploads in one night can be flagged as repetitive. Instagram's API caps about 50 posts per 24 hours per account:
   `instagram_per_hour` puts the best slots there, everything else goes to YouTube only.

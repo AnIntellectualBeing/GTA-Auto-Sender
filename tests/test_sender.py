@@ -47,6 +47,21 @@ class SenderTest(unittest.TestCase):
             self.assertNotIn(name, fed)
         self.assertEqual(fed["bad-1"], "vetoed")
 
+    def test_youtube_daily_cap_sends_surplus_to_instagram(self):
+        # 1 channel, 12 YouTube slots an hour, cap 2 a day: only 2 clips may go to YouTube, the rest Instagram-only
+        cfgp = os.path.join(self.tmp, "config", "channels.json")
+        cfg = json.loads(open(cfgp, encoding="utf-8-sig").read())
+        cfg["channels"] = {"c1": {**cfg["channels"]["c1"], "youtube_per_day": 2, "instagram_per_day": 3}}
+        open(cfgp, "w", encoding="utf-8").write(json.dumps(cfg))
+        self.run_py("clip_feeder.py")
+        yt = ig = 0
+        d = os.path.join(self.tmp, "queue", "c1", "ready")
+        for f in os.listdir(d):
+            if f.endswith(".json"):
+                pl = json.load(open(os.path.join(d, f), encoding="utf-8"))["platforms"]
+                yt += "youtube" in pl; ig += "instagram" in pl
+        self.assertEqual(yt, 2); self.assertEqual(ig, 3)
+
     def test_autopost_dry_runs_clean(self):
         self.run_py("clip_feeder.py")
         r = self.run_py("autopost.py", "--dry"); self.assertEqual(r.returncode, 0, r.stdout + r.stderr)

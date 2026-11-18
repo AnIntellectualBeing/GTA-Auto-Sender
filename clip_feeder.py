@@ -53,14 +53,46 @@ def taken(chan):
     return used
 
 
-def next_slot(ch, used, now, lookahead):
-    """First free grid slot for this channel: returns (time, instagram_too) or None."""
+def plat_times(chan, tz):
+    """{'youtube': [times], 'instagram': [times]} already booked on this channel (scheduled/ and ready/)."""
+    out = {"youtube": [], "instagram": []}
+    for sub in ("scheduled", "ready"):
+        for fn in glob.glob(str(Q / chan / sub / "*.json")):
+            try:
+                m = read_json(fn)
+                v = m.get("post_at") if sub == "scheduled" else (m.get("when") if m.get("when") not in (None, "now") else m.get("post_at"))
+                if not v:
+                    continue
+                t = dt.datetime.fromisoformat(v)
+                plats = list((m.get("posted") or {}).keys()) if sub == "scheduled" else (m.get("platforms") or ["youtube", "instagram"])
+                for pl in plats:
+                    if pl in out:
+                        out[pl].append(t)
+            except Exception:
+                pass
+    return out
+
+
+def under_cap(times, t, cap):
+    """Rolling 24 h limit: YouTube refuses uploads past about 10 per channel per day, Instagram's API about 50."""
+    day = dt.timedelta(hours=24)
+    return sum(1 for x in times if t - day < x <= t) < cap and sum(1 for x in times if t <= x < t + day) < cap
+
+
+def next_slot(ch, used, now, lookahead, hist):
+    """First free grid slot that is under the daily caps: returns (time, [platforms]) or None."""
     yt = ch.get("youtube_per_hour", 2)
     ig = ch.get("instagram_per_hour", 0)
     every_ig = max(1, round(yt / ig)) if ig else 0
     for t, k in grid_slots(now, yt, lookahead):
-        if t.replace(tzinfo=None) not in {u.replace(tzinfo=None) for u in used}:
-            return t, bool(every_ig) and k % every_ig == 0
+        if t.replace(tzinfo=None) in {u.replace(tzinfo=None) for u in used}:
+            continue
+        ig_wanted = bool(every_ig) and k % every_ig == 0
+        yt_ok = under_cap(hist["youtube"], t, ch.get("youtube_per_day", 10))
+        ig_ok = bool(ig) and under_cap(hist["instagram"], t, ch.get("instagram_per_day", 45))
+        plats = (["youtube"] if yt_ok else []) + (["instagram"] if ig_ok and (ig_wanted or not yt_ok) else [])
+        if plats:
+            return t, plats
     return None
 
 
@@ -78,7 +110,7 @@ def make_meta(cfg, clip, when, ig_ok, n):
         "youtube_description": f"{title}\n\n{credit_line}\n\n{site}\n\n" + " ".join(tags),
         "instagram_caption": f"{title}\n\n{credit_line}\n\n" + " ".join(tags),
         "hashtags": tags, "when": when.isoformat(),
-        "platforms": ["youtube", "instagram"] if ig_ok else ["youtube"],
+        "platforms": ig_ok,
         "source": "clip_feeder", "clip": clip.get("video"), "credit": credit, "source_url": src,
     }
 
@@ -134,17 +166,20 @@ def main():
         clips.sort(key=lambda x: -x[0])                     # best first
 
         used = {ch: taken(ch) for ch in channels}
+        hist = {ch: plat_times(ch, tz) for ch in channels}
         for score, name, c in clips:
             fed_n = {ch: sum(1 for v in state["fed"].values() if isinstance(v, str) and v.startswith(ch + "-clip-"))
                      for ch in channels}
-            options = [(s, ch) for ch in channels if (s := next_slot(channels[ch], used[ch], now, lookahead))]
+            options = [(s, ch) for ch in channels if (s := next_slot(channels[ch], used[ch], now, lookahead, hist[ch]))]
             if not options:
                 continue                                     # every channel is full up to the lookahead; wait for the next run
             (when, ig_ok), chan = min(options, key=lambda o: (fed_n[o[1]], o[0][0]))   # fewest fed first = equal share
             used[chan].add(when)
+            for pl in ig_ok:
+                hist[chan][pl].append(when)
             qname = f"{chan}-clip-{name}"
             meta = make_meta(cfg, c, when, ig_ok, state["n"])
-            log(f"{name} (score {score}) -> {chan} {when:%a %H:%M} {'YT+IG' if ig_ok else 'YT'}")
+            log(f"{name} (score {score}) -> {chan} {when:%a %H:%M} {'+'.join(x[:2].upper() for x in ig_ok)}")
             if DRY:
                 continue
             rdy = Q / chan / "ready"; rdy.mkdir(parents=True, exist_ok=True)

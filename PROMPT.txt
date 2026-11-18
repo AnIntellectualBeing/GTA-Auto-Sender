@@ -6,7 +6,7 @@ CLIPPING: Run python clip.py STREAM_URL --gameplay-confirmed --moment-source com
 
 CAPTIONS: One short caption line in a fixed spot; each word pops up yellow when spoken, and lines never stack. English speech stays English. Hindi speech becomes romanized Hinglish when recognition is reliable. Any other or uncertain language gets no captions (nothing is translated). Keep the original audio unchanged. Mask profanity in burned-in text as configured by the clipper.
 
-KEYS: When I give you my Zernio API key or YouTube Data API key in the chat, save it yourself in the project's private environment so I never have to edit files. Never print a key back, never write it into logs, clip metadata or tracked files. Find my YouTube and Instagram account IDs through Zernio yourself.
+KEYS: When I give you my Zernio API key or YouTube Data API key in the chat, save it yourself in the project's private environment so I never have to edit files. The YouTube key finds streams and reads live chat for the best moments; with no chat the clipper uses audio level and speech. Never print a key back, never write it into logs, clip metadata or tracked files. Find my YouTube and Instagram account IDs through Zernio yourself.
 
 AUTOMATIC POSTING: Install the GTA Auto Sender from https://github.com/AnIntellectualBeing/GTA-Auto-Sender, fill config/channels.json with my channels and Zernio account IDs, run its offline test and the --dry runs, then run scripts/install-tasks.ps1. From then on the sender feeds and posts every clip automatically and shares them equally across my channels. Never upload or call publish.py by hand for clips the sender handles. Never post test clips. If setup is incomplete, save clips locally and tell me what is missing.
 

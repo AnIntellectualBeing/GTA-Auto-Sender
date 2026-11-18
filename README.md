@@ -31,6 +31,8 @@ live streams ──> clip.py (one per stream) ──> clipper output\ ──> cl
 5. `powershell -ExecutionPolicy Bypass -File scripts\install-tasks.ps1`.
 6. Start a capture per live GTA stream: `scripts\run-live.ps1` (see its header). Look at a real frame first.
 
+`PROMPT.txt` is the master prompt to paste into your AI agent (it installs this kit and the clipper for you).
+
 ## Rules that save you
 
 * **Posting pace.** Start with 3-6 YouTube posts an hour per channel and raise it slowly. Hundreds of near-identical
